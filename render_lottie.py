@@ -79,16 +79,14 @@ def run_with_progress(
     process = subprocess.Popen(
         cmd,
         stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
         text=True,
         bufsize=1,
     )
 
-    stdout_lines: list[str] = []
-    stderr_lines: list[str] = []
+    output_lines: list[str] = []
 
     assert process.stdout is not None
-    assert process.stderr is not None
     try:
         while True:
             if should_cancel and should_cancel():
@@ -101,14 +99,16 @@ def run_with_progress(
 
             line = process.stdout.readline()
             if line:
-                stdout_lines.append(line)
+                output_lines.append(line)
                 stripped = line.strip()
                 if stripped.startswith(progress_prefix):
                     on_progress(stripped)
                 continue
 
             if process.poll() is not None:
-                stderr_lines = process.stderr.readlines()
+                remainder = process.stdout.read()
+                if remainder:
+                    output_lines.append(remainder)
                 break
     finally:
         if process.poll() is None:
@@ -118,8 +118,7 @@ def run_with_progress(
     if process.returncode != 0:
         raise RuntimeError(
             f"Command failed: {' '.join(cmd)}\n"
-            f"stdout:\n{''.join(stdout_lines)}\n"
-            f"stderr:\n{''.join(stderr_lines)}"
+            f"output:\n{''.join(output_lines)}"
         )
 
 
