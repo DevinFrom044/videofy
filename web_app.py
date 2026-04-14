@@ -527,6 +527,9 @@ def create_app(output_root: Path) -> Flask:
     return app
 
 
+app = create_app(DEFAULT_OUTPUT_ROOT)
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Local web UI for the Lottie video renderer.")
     parser.add_argument("--host", default="127.0.0.1", help="Server host. Default: 127.0.0.1")
@@ -546,8 +549,8 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> int:
     args = parse_args()
-    app = create_app(Path(args.output_dir))
-    app.run(host=args.host, port=args.port, debug=args.debug)
+    cli_app = create_app(Path(args.output_dir))
+    cli_app.run(host=args.host, port=args.port, debug=args.debug)
     return 0
 
 

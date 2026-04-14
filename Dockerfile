@@ -51,4 +51,4 @@ COPY . .
 
 EXPOSE 8080
 
-CMD ["sh", "-c", "python3 web_app.py --host 0.0.0.0 --port ${PORT:-8080}"]
+CMD ["sh", "-c", "gunicorn --bind 0.0.0.0:${PORT:-8080} --workers 1 --threads 8 --worker-class gthread web_app:app"]
