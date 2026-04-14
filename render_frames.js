@@ -34,10 +34,18 @@ function resolveChromePath(explicitPath) {
     return explicitPath;
   }
 
+  if (process.env.CHROME_PATH && fs.existsSync(process.env.CHROME_PATH)) {
+    return process.env.CHROME_PATH;
+  }
+
   const candidates = [
     "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
     "/Applications/Chromium.app/Contents/MacOS/Chromium",
-    "/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge"
+    "/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge",
+    "/usr/bin/google-chrome",
+    "/usr/bin/google-chrome-stable",
+    "/usr/bin/chromium",
+    "/usr/bin/chromium-browser"
   ];
 
   for (const candidate of candidates) {
@@ -75,8 +83,11 @@ async function main() {
     args: [
       "--allow-file-access-from-files",
       "--disable-gpu",
+      "--disable-dev-shm-usage",
       "--no-default-browser-check",
-      "--no-first-run"
+      "--no-first-run",
+      "--no-sandbox",
+      "--disable-setuid-sandbox"
     ],
     defaultViewport: {
       width,

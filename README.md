@@ -62,3 +62,26 @@ If project dependencies are missing, `run.command` will try to install them auto
 - Node packages from `package.json`
 
 This may take a minute on the first run.
+
+## Deploy to Railway
+
+This project is prepared for Railway using the included `Dockerfile`.
+
+### Step by step
+
+1. Push this project to GitHub.
+2. Go to Railway and sign in with GitHub.
+3. Click `New Project`.
+4. Choose `Deploy from GitHub repo`.
+5. Select your `videofy` repository.
+6. Railway will detect the `Dockerfile` and build the app automatically.
+7. After the deploy finishes, open the service in Railway.
+8. Go to `Settings` or `Networking` and generate a public domain.
+9. Open the generated Railway URL.
+
+### Notes
+
+- The app listens on `0.0.0.0:$PORT` inside Railway.
+- Chromium and `ffmpeg` are installed in the container.
+- Generated output files are stored inside the Railway service filesystem.
+- For long-term production usage, external object storage is recommended.
