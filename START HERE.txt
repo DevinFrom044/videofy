@@ -1,0 +1,22 @@
+VIDEOFY - QUICK START
+
+1. Double-click:
+   run.command
+
+2. If macOS blocks it:
+   Open System Settings -> Privacy & Security
+   Allow the file, then open it again
+
+3. Wait for the browser to open:
+   http://127.0.0.1:8765
+
+4. Keep the Terminal window open while using the app
+
+5. To stop the app later:
+   go back to Terminal and press Control + C
+
+Required on the Mac:
+- Python 3
+- Node.js
+- ffmpeg
+- Google Chrome

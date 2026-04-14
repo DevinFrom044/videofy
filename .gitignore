@@ -1,0 +1,21 @@
+.DS_Store
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+node_modules/
+
+(test)/
+AI Photo/
+AI Filter/
+AI Video/
+2 Photos/
+web_outputs/
+web_test_outputs/
+
+Videofy Package/
+Videofy Package.zip
+
+.venv/
+venv/

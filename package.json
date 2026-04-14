@@ -1,0 +1,11 @@
+{
+  "name": "lottie-video-tool",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Replace image assets in a Lottie template and render MP4 output.",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "lottie-web": "^5.12.2",
+    "puppeteer-core": "^24.7.1"
+  }
+}
