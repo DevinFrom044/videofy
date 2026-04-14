@@ -27,6 +27,13 @@ IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp"}
 VIDEO_EXTENSIONS = {".mp4"}
 MAX_VIDEO_DURATION_SECONDS = 60
 QUALITY_PRESET = {"scale_factor": 2, "video_crf": 20, "video_preset": "medium"}
+RAILWAY_QUALITY_PRESET = {
+    "scale_factor": 1,
+    "video_crf": 23,
+    "video_preset": "veryfast",
+    "encode_fps": 30,
+    "video_threads": 4,
+}
 INVALID_FILENAME_CHARS = re.compile(r'[<>:"/\\|?*\x00-\x1f]')
 VIDEO_TYPES = {
     "ai-photo": {
@@ -283,6 +290,13 @@ def update_job(job: RenderJob, **changes) -> None:
             setattr(job, key, value)
 
 
+def runtime_quality_preset(video_type: dict) -> dict:
+    preset = {**QUALITY_PRESET, **video_type.get("quality_preset", {})}
+    if os.environ.get("RAILWAY_ENVIRONMENT"):
+        preset = {**preset, **RAILWAY_QUALITY_PRESET}
+    return preset
+
+
 def run_render_job(
     *,
     app: Flask,
@@ -294,7 +308,7 @@ def run_render_job(
     try:
         video_type = app.config["VIDEO_TYPES"][video_type_key]
         output_dir = video_type_output_dir(app.config["OUTPUT_ROOT"], video_type_key)
-        quality_preset = {**QUALITY_PRESET, **video_type.get("quality_preset", {})}
+        quality_preset = runtime_quality_preset(video_type)
         update_job(job, status="running", progress=2, message="Starting render")
         app.logger.info("Starting render job %s for %s -> %s", job.id, video_type_key, output_dir)
 
@@ -314,6 +328,8 @@ def run_render_job(
             scale_factor=quality_preset["scale_factor"],
             video_crf=quality_preset["video_crf"],
             video_preset=quality_preset["video_preset"],
+            encode_fps=quality_preset.get("encode_fps"),
+            video_threads=quality_preset.get("video_threads"),
             transparent_asset_ids=video_type.get("transparent_asset_ids"),
             hidden_layer_inds=video_type.get("hidden_layer_inds"),
             overlay_video_path=saved_paths.get(video_type.get("video_overlay", {}).get("field", "")),

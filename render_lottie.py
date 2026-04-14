@@ -317,49 +317,56 @@ def compose_video_background_with_overlay(
     duration_seconds: float,
     video_crf: int,
     video_preset: str,
+    output_fps: float | None = None,
+    video_threads: int | None = None,
     should_cancel: Callable[[], bool] | None = None,
 ) -> None:
+    output_fps = output_fps or framerate
     filter_complex = (
         f"[0:v]scale={width}:{height}:force_original_aspect_ratio=increase,"
-        f"crop={width}:{height},fps={framerate},"
+        f"crop={width}:{height},fps={output_fps},"
         f"tpad=stop_mode=clone:stop_duration={duration_seconds}[bg];"
         f"[1:v]scale={width}:{height}:flags=lanczos,"
         f"colorkey=0x00FF00:0.03:0.0,"
-        f"despill=type=green:mix=0.25:expand=0.0[fg];"
+        f"despill=type=green:mix=0.25:expand=0.0,fps={output_fps}[fg];"
         f"[bg][fg]overlay=0:0:format=auto,"
         f"pad=ceil(iw/2)*2:ceil(ih/2)*2[out]"
     )
-    run(
+    cmd = [
+        "ffmpeg",
+        "-y",
+        "-i",
+        str(input_video_path),
+        "-framerate",
+        str(framerate),
+        "-i",
+        str(overlay_frames_dir / "frame_%05d.png"),
+        "-filter_complex",
+        filter_complex,
+        "-map",
+        "[out]",
+        "-t",
+        f"{duration_seconds:.6f}",
+        "-an",
+        "-c:v",
+        "libx264",
+        "-preset",
+        video_preset,
+        "-crf",
+        str(video_crf),
+    ]
+    if video_threads:
+        cmd.extend(["-threads", str(video_threads)])
+    cmd.extend(
         [
-            "ffmpeg",
-            "-y",
-            "-i",
-            str(input_video_path),
-            "-framerate",
-            str(framerate),
-            "-i",
-            str(overlay_frames_dir / "frame_%05d.png"),
-            "-filter_complex",
-            filter_complex,
-            "-map",
-            "[out]",
-            "-t",
-            f"{duration_seconds:.6f}",
-            "-an",
-            "-c:v",
-            "libx264",
-            "-preset",
-            video_preset,
-            "-crf",
-            str(video_crf),
             "-pix_fmt",
             "yuv420p",
             "-movflags",
             "+faststart",
             str(output_video_path),
-        ],
-        should_cancel=should_cancel,
+        ]
     )
+    run(cmd, should_cancel=should_cancel)
 
 
 def render_video(
@@ -372,6 +379,8 @@ def render_video(
     scale_factor: int = 2,
     video_crf: int = 18,
     video_preset: str = "slow",
+    encode_fps: float | None = None,
+    video_threads: int | None = None,
     image_modes_by_asset_id: Mapping[str, str] | None = None,
     transparent_asset_ids: list[str] | None = None,
     hidden_layer_inds: list[int] | None = None,
@@ -516,35 +525,44 @@ def render_video(
                 duration_seconds=int(lottie["op"]) / float(lottie["fr"]),
                 video_crf=video_crf,
                 video_preset=video_preset,
+                output_fps=encode_fps,
+                video_threads=video_threads,
                 should_cancel=should_cancel,
             )
         else:
             if progress_callback:
                 progress_callback(92, "Encoding video")
-            run(
+            filter_chain = ["pad=ceil(iw/2)*2:ceil(ih/2)*2"]
+            if encode_fps:
+                filter_chain.append(f"fps={encode_fps}")
+            cmd = [
+                "ffmpeg",
+                "-y",
+                "-framerate",
+                str(lottie["fr"]),
+                "-i",
+                str(frames_dir / "frame_%05d.png"),
+                "-vf",
+                ",".join(filter_chain),
+                "-c:v",
+                "libx264",
+                "-preset",
+                video_preset,
+                "-crf",
+                str(video_crf),
+            ]
+            if video_threads:
+                cmd.extend(["-threads", str(video_threads)])
+            cmd.extend(
                 [
-                    "ffmpeg",
-                    "-y",
-                    "-framerate",
-                    str(lottie["fr"]),
-                    "-i",
-                    str(frames_dir / "frame_%05d.png"),
-                    "-vf",
-                    "pad=ceil(iw/2)*2:ceil(ih/2)*2",
-                    "-c:v",
-                    "libx264",
-                    "-preset",
-                    video_preset,
-                    "-crf",
-                    str(video_crf),
                     "-pix_fmt",
                     "yuv420p",
                     "-movflags",
                     "+faststart",
                     str(output_video),
-                ],
-                should_cancel=should_cancel,
+                ]
             )
+            run(cmd, should_cancel=should_cancel)
 
         if keep_temp:
             kept_temp_dir = output_dir / f"{Path(output_name).stem}_temp"
