@@ -4,10 +4,12 @@ import argparse
 import base64
 import json
 import mimetypes
+import os
 import shutil
 import subprocess
 import sys
 import tempfile
+import time
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Callable, Mapping
@@ -80,13 +82,15 @@ def run_with_progress(
         cmd,
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
-        text=True,
-        bufsize=1,
+        text=False,
+        bufsize=0,
     )
 
-    output_lines: list[str] = []
+    output_chunks: list[str] = []
+    line_buffer = ""
 
     assert process.stdout is not None
+    os.set_blocking(process.stdout.fileno(), False)
     try:
         while True:
             if should_cancel and should_cancel():
@@ -97,19 +101,32 @@ def run_with_progress(
                     process.kill()
                 raise RenderCancelled("Render was terminated.")
 
-            line = process.stdout.readline()
-            if line:
-                output_lines.append(line)
-                stripped = line.strip()
-                if stripped.startswith(progress_prefix):
-                    on_progress(stripped)
+            try:
+                chunk = process.stdout.read()
+            except BlockingIOError:
+                chunk = None
+
+            if chunk:
+                decoded = chunk.decode("utf-8", errors="replace")
+                output_chunks.append(decoded)
+                line_buffer += decoded
+                while "\n" in line_buffer:
+                    line, line_buffer = line_buffer.split("\n", 1)
+                    stripped = line.strip()
+                    if stripped.startswith(progress_prefix):
+                        on_progress(stripped)
                 continue
 
             if process.poll() is not None:
                 remainder = process.stdout.read()
                 if remainder:
-                    output_lines.append(remainder)
+                    decoded = remainder.decode("utf-8", errors="replace")
+                    output_chunks.append(decoded)
+                    line_buffer += decoded
+                if line_buffer.strip().startswith(progress_prefix):
+                    on_progress(line_buffer.strip())
                 break
+            time.sleep(0.05)
     finally:
         if process.poll() is None:
             process.kill()
@@ -118,7 +135,7 @@ def run_with_progress(
     if process.returncode != 0:
         raise RuntimeError(
             f"Command failed: {' '.join(cmd)}\n"
-            f"output:\n{''.join(output_lines)}"
+            f"output:\n{''.join(output_chunks)}"
         )
 
 

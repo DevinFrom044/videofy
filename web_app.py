@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 
 import argparse
+import logging
+import os
 import re
 import shutil
 import subprocess
@@ -16,7 +18,11 @@ from render_lottie import RenderCancelled, render_video
 
 
 PROJECT_DIR = Path(__file__).resolve().parent
-DEFAULT_OUTPUT_ROOT = PROJECT_DIR
+DEFAULT_OUTPUT_ROOT = (
+    Path("/tmp/videofy_outputs")
+    if os.environ.get("RAILWAY_ENVIRONMENT") and not os.environ.get("VIDEOFY_OUTPUT_ROOT")
+    else Path(os.environ.get("VIDEOFY_OUTPUT_ROOT", str(PROJECT_DIR)))
+)
 IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp"}
 VIDEO_EXTENSIONS = {".mp4"}
 MAX_VIDEO_DURATION_SECONDS = 60
@@ -290,6 +296,7 @@ def run_render_job(
         output_dir = video_type_output_dir(app.config["OUTPUT_ROOT"], video_type_key)
         quality_preset = {**QUALITY_PRESET, **video_type.get("quality_preset", {})}
         update_job(job, status="running", progress=2, message="Starting render")
+        app.logger.info("Starting render job %s for %s -> %s", job.id, video_type_key, output_dir)
 
         asset_image_paths = {
             asset_id: saved_paths[field_name]
@@ -329,6 +336,14 @@ def run_render_job(
                 "replacedAssetIds": result.replaced_asset_ids,
             },
         )
+        app.logger.info(
+            "Completed render job %s. video=%s json=%s exists(video)=%s exists(json)=%s",
+            job.id,
+            result.output_video,
+            result.rendered_json,
+            result.output_video.exists(),
+            result.rendered_json.exists(),
+        )
     except RenderCancelled as error:
         update_job(
             job,
@@ -336,6 +351,7 @@ def run_render_job(
             message="Terminated",
             error=str(error),
         )
+        app.logger.warning("Cancelled render job %s: %s", job.id, error)
     except Exception as error:
         update_job(
             job,
@@ -343,6 +359,7 @@ def run_render_job(
             error=str(error),
             message="Render failed",
         )
+        app.logger.exception("Render job %s failed", job.id)
     finally:
         if job.work_dir and job.work_dir.exists():
             shutil.rmtree(job.work_dir, ignore_errors=True)
@@ -350,7 +367,9 @@ def run_render_job(
 
 def create_app(output_root: Path) -> Flask:
     app = Flask(__name__, template_folder=str(PROJECT_DIR / "templates"))
+    app.logger.setLevel(logging.INFO)
     app.config["OUTPUT_ROOT"] = output_root.expanduser().resolve()
+    app.config["OUTPUT_ROOT"].mkdir(parents=True, exist_ok=True)
     app.config["JOBS"] = {}
     app.config["VIDEO_TYPES"] = {
         key: {
@@ -484,7 +503,9 @@ def create_app(output_root: Path) -> Flask:
         output_dir = video_type_output_dir(app.config["OUTPUT_ROOT"], video_type)
         file_path = output_dir / filename
         if not file_path.exists():
+            app.logger.warning("Missing output file for %s: %s", video_type, file_path)
             abort(404)
+        app.logger.info("Serving output file for %s: %s", video_type, file_path)
         return send_from_directory(output_dir, filename)
 
     return app
