@@ -7,28 +7,28 @@
     <style>
       :root {
         color-scheme: dark;
-        --page: #111214;
-        --surface: #232327;
-        --surface-2: #1d1d21;
-        --surface-3: #2b2c31;
-        --surface-4: #191a1e;
-        --text: #f2f3f5;
-        --muted: #a9abb3;
-        --muted-strong: #c8cad1;
-        --stroke: rgba(255, 255, 255, 0.08);
-        --stroke-strong: rgba(255, 255, 255, 0.14);
-        --accent: #5865f2;
-        --accent-strong: #6d78f7;
-        --accent-soft: rgba(88, 101, 242, 0.16);
-        --danger: #d95374;
-        --shadow: 0 24px 80px rgba(0, 0, 0, 0.4);
+        --page: #18181b;
+        --surface: #28282d;
+        --surface-2: #232327;
+        --surface-3: #313138;
+        --surface-4: #1f1f23;
+        --text: #f5f5f7;
+        --muted: #a3a3ac;
+        --muted-strong: #c9c9d0;
+        --stroke: rgba(255, 255, 255, 0.06);
+        --stroke-strong: rgba(255, 255, 255, 0.12);
+        --accent: #5964f2;
+        --accent-strong: #7079ff;
+        --accent-soft: rgba(89, 100, 242, 0.18);
+        --danger: #4f525d;
+        --shadow: 0 18px 60px rgba(0, 0, 0, 0.24);
         --slot-size: 132px;
-        --slot-gap: 12px;
+        --slot-gap: 10px;
         --slot-card-height: 156px;
         --groups-panel-height: calc((var(--slot-card-height) * 2) + var(--slot-gap) + 32px);
         --content-width: calc((var(--slot-size) * 6) + (var(--slot-gap) * 5));
-        --preview-width: 300px;
-        --workspace-gap: 16px;
+        --preview-width: 344px;
+        --workspace-gap: 24px;
       }
 
       * {
@@ -38,32 +38,31 @@
       body {
         margin: 0;
         min-height: 100vh;
-        background:
-          linear-gradient(180deg, rgba(255, 255, 255, 0.02) 0%, rgba(255, 255, 255, 0) 12%),
-          linear-gradient(90deg, rgba(255, 255, 255, 0.02) 0 1px, transparent 1px 100%),
-          linear-gradient(180deg, #101113 0%, #0f1012 100%);
-        background-size: auto, 120px 100%, auto;
+        background: #18181b;
         color: var(--text);
         font-family: Inter, "Segoe UI", sans-serif;
       }
 
       .page {
         min-height: 100vh;
-        padding: 48px 28px;
+        padding: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
       }
 
       .shell {
-        width: min(calc(var(--content-width) + var(--preview-width) + var(--workspace-gap) + 80px), 100%);
+        width: min(calc(var(--content-width) + var(--preview-width) + var(--workspace-gap) + 72px), 100%);
         margin: 0 auto;
-        padding: 20px 20px 18px;
+        padding: 18px 28px 18px 20px;
         border: 1px solid var(--stroke);
-        border-radius: 14px;
-        background: rgba(35, 35, 39, 0.98);
+        border-radius: 18px;
+        background: #28282d;
         box-shadow: var(--shadow);
       }
 
       .workspace {
-        margin-top: 22px;
+        margin-top: 20px;
         display: flex;
         align-items: stretch;
         gap: var(--workspace-gap);
@@ -71,21 +70,40 @@
 
       .hero {
         display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 20px;
+      }
+
+      .hero-copy-wrap {
+        display: flex;
         flex-direction: column;
-        gap: 0;
+        gap: 2px;
+      }
+
+      .hero-logo {
+        width: 32px;
+        height: 32px;
+        flex: 0 0 auto;
+      }
+
+      .hero-logo svg {
+        display: block;
+        width: 100%;
+        height: 100%;
       }
 
       h1 {
         margin: 0;
-        font-size: 21px;
+        font-size: 20px;
         line-height: 1.2;
         letter-spacing: -0.03em;
         font-weight: 700;
-        color: #f4f5f7;
+        color: #f5f5f7;
       }
 
       .hero-copy {
-        margin: 6px 0 0;
+        margin: 0;
         color: var(--muted);
         font-size: 13px;
         line-height: 1.45;
@@ -94,46 +112,42 @@
       .stack {
         display: flex;
         flex-direction: column;
-        gap: 24px;
+        gap: 22px;
         width: min(var(--content-width), 100%);
         flex: 0 0 min(var(--content-width), 100%);
       }
 
       .actions-shell {
-        margin-top: 24px;
+        margin-top: 18px;
         width: min(var(--content-width), 100%);
       }
 
       .field {
         display: flex;
         flex-direction: column;
-        gap: 12px;
+        gap: 9px;
       }
 
       .field-label {
         font-size: 11px;
-        font-weight: 800;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
-        color: #e3e5e8;
+        font-weight: 700;
+        letter-spacing: 0;
+        color: #e8e8ec;
       }
 
       .field-copy {
-        margin: -6px 0 0;
-        color: var(--muted);
-        font-size: 12px;
-        line-height: 1.45;
+        display: none;
       }
 
       .segmented {
         display: inline-flex;
         align-items: center;
-        gap: 4px;
+        gap: 5px;
         width: fit-content;
-        padding: 4px;
-        border-radius: 10px;
-        background: var(--surface-2);
-        border: 1px solid var(--stroke);
+        padding: 5px;
+        border-radius: 14px;
+        background: #1f1f23;
+        border: 0;
       }
 
       .segmented-option {
@@ -152,12 +166,12 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        min-height: 36px;
-        padding: 8px 12px;
-        border-radius: 8px;
-        color: #b7bbc4;
+        min-height: 42px;
+        padding: 10px 17px;
+        border-radius: 12px;
+        color: #abafb9;
         font-size: 14px;
-        font-weight: 600;
+        font-weight: 500;
         line-height: 1;
         letter-spacing: -0.02em;
         cursor: pointer;
@@ -166,28 +180,27 @@
       }
 
       .segmented-option input:checked + span {
-        background: #34363c;
-        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
-        color: #f2f3f5;
+        background: #40434d;
+        color: #f6f7fb;
         font-weight: 700;
       }
 
       .segmented-option.disabled span {
         cursor: not-allowed;
         opacity: 1;
-        color: #5f6c7c;
+        color: #7c818d;
       }
 
       .input {
         width: min(calc((var(--slot-size) * 3) + (var(--slot-gap) * 2)), 100%);
-        min-height: 56px;
-        padding: 0 14px;
-        border: 1px solid var(--stroke);
-        border-radius: 8px;
-        background: var(--surface-2);
+        min-height: 50px;
+        padding: 0 18px;
+        border: 0;
+        border-radius: 12px;
+        background: #1f1f23;
         color: #eef1f6;
         font: inherit;
-        font-size: 15px;
+        font-size: 16px;
       }
 
       .input::placeholder {
@@ -203,38 +216,41 @@
       .groups {
         display: flex;
         flex-direction: column;
-        gap: 12px;
+        gap: 22px;
         width: min(var(--content-width), 100%);
         min-height: var(--groups-panel-height);
-        padding: 16px;
-        border-radius: 12px;
-        background: var(--surface-3);
-        border: 1px solid var(--stroke);
+        padding: 0;
+        border-radius: 0;
+        background: transparent;
+        border: 0;
       }
 
       .slot-grid {
         display: grid;
-        gap: var(--slot-gap);
+        gap: 20px;
         justify-content: start;
         grid-template-columns: repeat(var(--columns, 6), minmax(0, var(--slot-size)));
+        width: fit-content;
+        max-width: 100%;
+        align-self: flex-start;
       }
 
       .slot-card {
         position: relative;
         display: flex;
         flex-direction: column;
-        min-height: var(--slot-card-height);
+        height: var(--slot-card-height);
         width: var(--slot-size);
-        padding: 10px;
-        border: 1px dashed rgba(255, 255, 255, 0.12);
-        border-radius: 10px;
-        background: var(--surface-2);
+        padding: 0 0 12px;
+        border: 1px dashed rgba(255, 255, 255, 0.08);
+        border-radius: 14px;
+        background: #232327;
         cursor: pointer;
         transition: border-color 160ms ease, transform 160ms ease, background 160ms ease;
       }
 
       .slot-card.large {
-        min-height: 0;
+        height: var(--slot-card-height);
       }
 
       .slot-card.dragover {
@@ -255,12 +271,14 @@
       .slot-head {
         display: block;
         text-align: center;
+        order: 2;
+        padding: 0 12px;
       }
 
       .slot-title {
         margin: 0;
         font-size: 12px;
-        line-height: 1.05;
+        line-height: 1.2;
         letter-spacing: -0.03em;
         font-weight: 500;
         color: #d7dae0;
@@ -271,18 +289,25 @@
       }
 
       .preview-shell {
-        margin-top: 8px;
-        display: block;
+        display: flex;
+        align-items: stretch;
+        justify-content: stretch;
+        flex: 1;
+        order: 1;
+        padding: 12px;
       }
 
       .preview-frame {
         width: 100%;
         max-width: 100%;
-        border-radius: 8px;
-        background: linear-gradient(180deg, rgba(40, 43, 48, 0.98), rgba(31, 34, 38, 0.98));
+        border-radius: 0;
+        background: transparent;
         overflow: hidden;
-        aspect-ratio: 1 / 1;
         position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex: 1;
       }
 
       .preview-frame img {
@@ -305,17 +330,11 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        padding: 10px;
-        color: rgba(203, 214, 229, 0.88);
-        font-size: 11px;
+        padding: 0;
+        color: rgba(203, 214, 229, 0.34);
+        font-size: 28px;
+        font-weight: 700;
         text-align: center;
-      }
-
-      .preview-placeholder svg {
-        width: 28px;
-        height: 28px;
-        display: block;
-        stroke: #c7cad1;
       }
 
       .slot-remove {
@@ -366,23 +385,18 @@
         transform: translateY(0);
       }
 
-      .slot-card.generated {
-        border-color: rgba(88, 101, 242, 0.4);
-        background: rgba(88, 101, 242, 0.08);
-      }
-
       .actions {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        gap: 16px;
+        gap: 14px;
         width: 100%;
       }
 
       .actions-left {
         display: flex;
         align-items: center;
-        gap: 8px;
+        gap: 12px;
         flex-wrap: wrap;
       }
 
@@ -390,7 +404,7 @@
         display: flex;
         align-items: center;
         justify-content: flex-start;
-        min-width: 126px;
+        min-width: 0;
       }
 
       .progress {
@@ -449,7 +463,7 @@
       }
 
       .button {
-        min-height: 44px;
+        min-height: 42px;
         padding: 0 18px;
         border-radius: 8px;
         border: 1px solid transparent;
@@ -461,19 +475,19 @@
       }
 
       .button.primary {
-        background: var(--accent);
+        background: #5964f2;
         color: #ffffff;
         box-shadow: none;
       }
 
       .button.primary:hover:not(:disabled) {
-        background: var(--accent-strong);
+        background: #6f79ff;
         box-shadow: none;
       }
 
       .button.secondary {
-        background: #3a3d44;
-        color: #e6e8ec;
+        background: #35363c;
+        color: #e2e4e9;
         border-color: transparent;
       }
 
@@ -516,11 +530,11 @@
       .result {
         display: flex;
         flex-direction: column;
-        gap: 12px;
-        padding: 14px;
-        border-radius: 12px;
-        background: var(--surface-3);
-        border: 1px solid var(--stroke);
+        gap: 10px;
+        padding: 12px;
+        border-radius: 14px;
+        background: #313138;
+        border: 1px solid rgba(255, 255, 255, 0.05);
         min-height: calc(var(--groups-panel-height) + 2px);
       }
 
@@ -547,30 +561,16 @@
         gap: 12px;
         flex: 1;
         min-height: 0;
-        border-radius: 10px;
-        background: var(--surface-2);
+        border-radius: 14px;
+        background: #232327;
         color: #98a095;
         text-align: center;
         padding: 20px;
-        border: 1px dashed rgba(255, 255, 255, 0.1);
+        border: 1px dashed rgba(255, 255, 255, 0.08);
       }
 
       .result.visible .result-empty {
         display: none;
-      }
-
-      .result-empty-badge {
-        width: 56px;
-        height: 56px;
-        border-radius: 999px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        background: #3b4150;
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        color: #d2d8e1;
-        font-size: 24px;
-        font-weight: 700;
       }
 
       .result-empty-title {
@@ -591,8 +591,9 @@
 
       .result-links {
         display: flex;
-        gap: 10px;
+        gap: 8px;
         flex-wrap: wrap;
+        justify-content: flex-end;
       }
 
       .result-links a {
@@ -600,9 +601,9 @@
         font-size: 12px;
         font-weight: 700;
         text-decoration: none;
-        padding: 10px 12px;
-        border-radius: 8px;
-        background: rgba(88, 101, 242, 0.18);
+        padding: 0;
+        border-radius: 0;
+        background: transparent;
       }
 
       .result-dock {
@@ -611,6 +612,7 @@
         display: flex;
         flex-direction: column;
         gap: 12px;
+        margin-right: 6px;
       }
 
       .result-label {
@@ -618,10 +620,7 @@
       }
 
       .result-copy {
-        margin: -8px 0 0;
-        color: var(--muted);
-        font-size: 12px;
-        line-height: 1.45;
+        display: none;
       }
 
       .modal-backdrop {
@@ -699,6 +698,10 @@
         .slot-card {
           width: 100%;
         }
+
+        .groups[data-video-type="ai-photo"] .slot-grid {
+          grid-template-columns: repeat(3, minmax(0, var(--slot-size)));
+        }
       }
 
       @media (max-width: 640px) {
@@ -757,42 +760,55 @@
     <div class="page">
       <main class="shell">
         <header class="hero">
-          <h1>Visify Styler Preview</h1>
-          <p class="hero-copy">Configure your template, upload media, and review the generated video before downloading it.</p>
+          <div class="hero-copy-wrap">
+            <h1>Styler</h1>
+            <p class="hero-copy">by GuruApps Design Team</p>
+          </div>
+          <div class="hero-logo" aria-hidden="true">
+            <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect width="100" height="100" rx="50" fill="#01011C"/>
+              <g clip-path="url(#clip0_5071_49407)">
+                <path d="M44.8276 66.3789V73.2754C44.8276 73.7327 45.0092 74.1712 45.3326 74.4946C45.6559 74.8179 46.0945 74.9996 46.5517 74.9996H73.2759C73.7331 74.9996 74.1717 74.8179 74.495 74.4946C74.8184 74.1712 75 73.7327 75 73.2754V46.5513C75 46.094 74.8184 45.6555 74.495 45.3321C74.1717 45.0088 73.7331 44.8271 73.2759 44.8271H66.3793C66.373 50.5411 64.1004 56.0192 60.06 60.0596C56.0197 64.1 50.5415 66.3726 44.8276 66.3789V66.3789Z" fill="#009AFF"/>
+                <path d="M44.8287 46.5513V64.6547C50.0873 64.6547 55.1305 62.5658 58.8489 58.8474C62.5673 55.129 64.6562 50.0858 64.6562 44.8271H46.5528C46.0955 44.8271 45.657 45.0088 45.3337 45.3321C45.0103 45.6555 44.8287 46.094 44.8287 46.5513Z" fill="#9013FE"/>
+                <path d="M25.0003 44.8278C25.0004 49.7879 26.8596 54.5678 30.2109 58.2244C33.5623 61.881 38.1625 64.1486 43.1038 64.5799V46.5519C43.1038 45.6374 43.4671 44.7603 44.1138 44.1136C44.7604 43.4669 45.6375 43.1036 46.5521 43.1036H64.5801C64.1349 38.0145 61.7426 33.2936 57.902 29.9251C54.0613 26.5565 49.0687 24.8004 43.965 25.0227C38.8613 25.245 34.0403 27.4287 30.5072 31.1184C26.974 34.8081 25.0013 39.7192 25.0003 44.8278V44.8278Z" fill="#FDD426"/>
+              </g>
+              <defs>
+                <clipPath id="clip0_5071_49407">
+                  <rect width="50" height="50" fill="white" transform="matrix(-1 0 0 1 75 25)"/>
+                </clipPath>
+              </defs>
+            </svg>
+          </div>
         </header>
 
         <div class="workspace">
           <section class="stack">
             <div class="field">
-              <div class="field-label">1. Video Type</div>
+              <div class="field-label">🪄 Style type</div>
               <div id="videoTypeSelector" class="segmented" aria-label="Video type selector"></div>
             </div>
 
             <div class="field">
-              <label class="field-label" for="videoTitle">2. Video Title</label>
-              <input id="videoTitle" class="input" type="text" placeholder="Enter video title" maxlength="120" />
+              <label class="field-label" for="videoTitle">📝 Video title</label>
+              <input id="videoTitle" class="input" type="text" placeholder="Name this preview" maxlength="120" />
             </div>
 
             <div class="field">
-              <div id="uploadStepLabel" class="field-label">3. Photos</div>
-              <p class="field-copy">Upload the required assets for the selected template. Generated output will appear in the preview panel.</p>
+              <div id="uploadStepLabel" class="field-label">🖼️ Photos</div>
               <div id="uploadGroups" class="groups"></div>
             </div>
           </section>
 
           <aside class="result-dock">
-            <div class="field-label result-label">Preview</div>
-            <p class="result-copy">This panel shows the rendered result and gives access to the exported video and generated JSON.</p>
+            <div class="field-label result-label">👁️ Preview</div>
             <section id="result" class="result">
               <div class="result-empty">
-                <div class="result-empty-badge">▶</div>
                 <p class="result-empty-title">Generated preview</p>
                 <p class="result-empty-copy">Your rendered video will appear here once generation is complete.</p>
               </div>
               <video id="resultVideo" controls playsinline></video>
               <div class="result-links">
-                <a id="videoLink" href="#" target="_blank" rel="noreferrer">Open video</a>
-                <a id="jsonLink" href="#" target="_blank" rel="noreferrer">Open generated JSON</a>
+                <a id="downloadLink" href="#" download>💾 Download Video</a>
               </div>
             </section>
           </aside>
@@ -802,10 +818,10 @@
           <div class="actions">
             <div class="actions-left">
               <div class="primary-action-slot">
-                <button id="generateButton" class="button primary" type="button" disabled>Generate</button>
+                <button id="generateButton" class="button primary" type="button" disabled>✨ Generate</button>
                 <button id="terminateButton" class="button terminate hidden" type="button">Terminate</button>
               </div>
-              <button id="clearAllButton" class="button secondary" type="button" disabled>Clear All</button>
+              <button id="clearAllButton" class="button secondary" type="button" disabled>🗑 Clear All</button>
               <div id="progress" class="progress" aria-live="polite">
                 <div id="progressStatus" class="progress-status"></div>
                 <div class="progress-row">
@@ -864,8 +880,7 @@
       const progressValue = document.getElementById("progressValue");
       const resultEl = document.getElementById("result");
       const resultVideo = document.getElementById("resultVideo");
-      const videoLink = document.getElementById("videoLink");
-      const jsonLink = document.getElementById("jsonLink");
+      const downloadLink = document.getElementById("downloadLink");
       const clearModal = document.getElementById("clearModal");
       const cancelClearButton = document.getElementById("cancelClearButton");
       const confirmClearButton = document.getElementById("confirmClearButton");
@@ -1002,7 +1017,8 @@
 
       function renderModuleCopy() {
         const config = activeConfig();
-        uploadStepLabel.textContent = config.upload_step_label || "3. Photos";
+        uploadStepLabel.textContent = "🖼️ Photos";
+        uploadGroups.dataset.videoType = state.videoType;
         renderUploadGroups();
         updateControls();
       }
@@ -1012,9 +1028,6 @@
         wrapper.className = `slot-card ${slot.size === "large" ? "large" : ""}`.trim();
         wrapper.tabIndex = 0;
         wrapper.dataset.field = slot.field;
-        if (slot.field.includes("generated")) {
-          wrapper.classList.add("generated");
-        }
         if (state.files[slot.field]) {
           wrapper.classList.add("has-file");
         }
@@ -1081,11 +1094,7 @@
         } else {
           const placeholder = document.createElement("div");
           placeholder.className = "preview-placeholder";
-          placeholder.innerHTML = `
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
-              <path d="M15 12H12M12 12H9M12 12V9.00001M12 12V15M7 3.33801C8.51945 2.45874 10.2445 1.99712 12 2.00001C17.523 2.00001 22 6.47701 22 12C22 17.523 17.523 22 12 22C6.477 22 2 17.523 2 12C2 10.179 2.487 8.47001 3.338 7.00001" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-            </svg>
-          `;
+          placeholder.textContent = "+";
           previewFrame.appendChild(placeholder);
         }
 
@@ -1270,8 +1279,8 @@
           if (payload.status === "completed") {
             const result = payload.result;
             resultVideo.src = result.videoUrl;
-            videoLink.href = result.videoUrl;
-            jsonLink.href = result.jsonUrl;
+            downloadLink.href = result.videoUrl;
+            downloadLink.setAttribute("download", result.videoName || "render.mp4");
             resultEl.classList.add("visible");
             setProgress(100, true, payload.message || "Done");
             progressHideTimeout = setTimeout(() => {
