@@ -31,7 +31,6 @@ RAILWAY_QUALITY_PRESET = {
     "scale_factor": 1,
     "video_crf": 23,
     "video_preset": "veryfast",
-    "encode_fps": 30,
     "video_threads": 4,
 }
 INVALID_FILENAME_CHARS = re.compile(r'[<>:"/\\|?*\x00-\x1f]')
@@ -42,6 +41,7 @@ VIDEO_TYPES = {
         "enabled": True,
         "description": "Upload 3 Before photos and 6 After photos. The template reuses the first and last After frames automatically.",
         "template_path": PROJECT_DIR / "templates_json" / "AI-PHOTO.json",
+        "quality_preset": {"render_fps": 30, "encode_fps": 30},
         "upload_groups": [
             {
                 "key": "before",
@@ -89,6 +89,7 @@ VIDEO_TYPES = {
         "enabled": True,
         "description": "Upload 3 pairs of Before and After photos for the three AI Filter groups.",
         "template_path": PROJECT_DIR / "templates_json" / "maska-worksGood.json",
+        "quality_preset": {"render_fps": 30, "encode_fps": 30},
         "upload_groups": [
             {
                 "key": "group-1",
@@ -144,7 +145,7 @@ VIDEO_TYPES = {
         "description": "Upload 1 photo and 1 MP4 video for the AI Video template.",
         "upload_step_label": "3. Media",
         "template_path": PROJECT_DIR / "templates_json" / "AI-VIDEO (1).json",
-        "quality_preset": {"scale_factor": 2, "video_crf": 23, "video_preset": "medium"},
+        "quality_preset": {"scale_factor": 2, "video_crf": 23, "video_preset": "medium", "render_fps": 60, "encode_fps": 60},
         "upload_groups": [
             {
                 "key": "media",
@@ -172,6 +173,7 @@ VIDEO_TYPES = {
         "enabled": True,
         "description": "Upload 2 source photos plus 1 generated photo for the 2 Photos flow.",
         "template_path": PROJECT_DIR / "templates_json" / "2-Photo-Flow (1).json",
+        "quality_preset": {"render_fps": 30, "encode_fps": 30},
         "upload_groups": [
             {
                 "key": "photos",
@@ -328,6 +330,7 @@ def run_render_job(
             scale_factor=quality_preset["scale_factor"],
             video_crf=quality_preset["video_crf"],
             video_preset=quality_preset["video_preset"],
+            render_fps=quality_preset.get("render_fps"),
             encode_fps=quality_preset.get("encode_fps"),
             video_threads=quality_preset.get("video_threads"),
             transparent_asset_ids=video_type.get("transparent_asset_ids"),

@@ -64,6 +64,9 @@ async function main() {
   const width = Number(requireArg(args, "width"));
   const height = Number(requireArg(args, "height"));
   const totalFrames = Number(requireArg(args, "frames"));
+  const sourceFrames = Number(args["source-frames"] || String(totalFrames));
+  const sourceFps = Number(args["source-fps"] || "60");
+  const renderFps = Number(args["render-fps"] || String(sourceFps));
   const scaleFactor = Number(args["scale-factor"] || "2");
   const transparent = String(args["transparent"] || "0") === "1";
   const pageBackground = transparent ? "#00ff00" : "transparent";
@@ -144,13 +147,23 @@ async function main() {
     return window.__animation && window.__animation.isLoaded;
   });
 
+  const resolveSourceFrame = (frameIndex) => {
+    if (totalFrames <= 1 || sourceFrames <= 1 || renderFps <= 0 || sourceFps <= 0) {
+      return 0;
+    }
+    const durationSeconds = sourceFrames / sourceFps;
+    const frameTime = Math.min(frameIndex / renderFps, durationSeconds);
+    return Math.min(sourceFrames - 1, Math.round(frameTime * sourceFps));
+  };
+
   for (let frame = 0; frame < totalFrames; frame += 1) {
+    const sourceFrame = resolveSourceFrame(frame);
     await page.evaluate((frameNumber) => {
       window.__animation.goToAndStop(frameNumber, true);
       return new Promise((resolve) => {
         requestAnimationFrame(() => requestAnimationFrame(resolve));
       });
-    }, frame);
+    }, sourceFrame);
 
     const framePath = path.join(outputDir, `frame_${String(frame).padStart(5, "0")}.png`);
     await page.screenshot({

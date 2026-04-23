@@ -379,6 +379,7 @@ def render_video(
     scale_factor: int = 2,
     video_crf: int = 18,
     video_preset: str = "slow",
+    render_fps: float | None = None,
     encode_fps: float | None = None,
     video_threads: int | None = None,
     image_modes_by_asset_id: Mapping[str, str] | None = None,
@@ -402,6 +403,9 @@ def render_video(
     output_dir.mkdir(parents=True, exist_ok=True)
 
     lottie = json.loads(template_path.read_text(encoding="utf-8"))
+    source_fps = float(lottie["fr"])
+    render_fps = float(render_fps or source_fps)
+    target_frame_count = max(1, round((int(lottie["op"]) / source_fps) * render_fps))
     bitmap_by_id = asset_map_by_id(find_bitmap_assets(lottie))
     requested_asset_ids = list(asset_image_paths) + transparent_asset_ids
     missing_asset_ids = [asset_id for asset_id in requested_asset_ids if asset_id not in bitmap_by_id]
@@ -483,7 +487,13 @@ def render_video(
             "--height",
             str(int(lottie["h"])),
             "--frames",
+            str(target_frame_count),
+            "--source-frames",
             str(int(lottie["op"])),
+            "--source-fps",
+            str(source_fps),
+            "--render-fps",
+            str(render_fps),
             "--scale-factor",
             str(scale_factor),
             "--transparent",
@@ -497,7 +507,7 @@ def render_video(
             def handle_frame_progress(message: str) -> None:
                 _, frame_str, total_str = message.split()
                 frame_number = int(frame_str)
-                frame_total = int(total_str) if total_str else total_frames
+                frame_total = int(total_str) if total_str else target_frame_count
                 ratio = frame_number / max(1, frame_total)
                 progress_value = 22 + round(ratio * 68)
                 progress_callback(progress_value, f"Rendering frames {frame_number}/{frame_total}")
@@ -521,8 +531,8 @@ def render_video(
                 output_video_path=output_video,
                 width=int(lottie["w"]),
                 height=int(lottie["h"]),
-                framerate=float(lottie["fr"]),
-                duration_seconds=int(lottie["op"]) / float(lottie["fr"]),
+                framerate=render_fps,
+                duration_seconds=int(lottie["op"]) / source_fps,
                 video_crf=video_crf,
                 video_preset=video_preset,
                 output_fps=encode_fps,
@@ -539,7 +549,7 @@ def render_video(
                 "ffmpeg",
                 "-y",
                 "-framerate",
-                str(lottie["fr"]),
+                str(render_fps),
                 "-i",
                 str(frames_dir / "frame_%05d.png"),
                 "-vf",
