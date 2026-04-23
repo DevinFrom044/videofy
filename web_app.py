@@ -355,13 +355,15 @@ def run_render_job(
             },
         )
         app.logger.info(
-            "Completed render job %s. video=%s json=%s exists(video)=%s exists(json)=%s timings=%s",
+            "Completed render job %s type=%s video=%s json=%s exists(video)=%s exists(json)=%s timings=%s render=%s",
             job.id,
+            video_type_key,
             result.output_video,
             result.rendered_json,
             result.output_video.exists(),
             result.rendered_json.exists(),
             result.stage_timings,
+            result.render_metadata,
         )
     except RenderCancelled as error:
         update_job(

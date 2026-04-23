@@ -403,6 +403,7 @@ class RenderResult:
     rendered_json: Path
     replaced_asset_ids: list[str]
     stage_timings: dict[str, float]
+    render_metadata: dict[str, float | int]
 
 
 def compose_video_background_with_overlay(
@@ -704,6 +705,14 @@ def render_video(
         rendered_json=rendered_json_path,
         replaced_asset_ids=list(asset_image_paths.keys()) + transparent_asset_ids,
         stage_timings=stage_timings,
+        render_metadata={
+            "source_fps": round(source_fps, 3),
+            "render_fps": round(render_fps, 3),
+            "encode_fps": round(float(encode_fps or render_fps), 3),
+            "source_frame_count": int(lottie["op"]),
+            "target_frame_count": target_frame_count,
+            "scale_factor": scale_factor,
+        },
     )
 
 
