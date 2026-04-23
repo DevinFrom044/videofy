@@ -19,6 +19,9 @@ class RenderCancelled(RuntimeError):
     pass
 
 
+MAX_INPUT_IMAGE_SIDE = 2048
+
+
 def run(
     cmd: list[str],
     *,
@@ -151,6 +154,101 @@ def default_asset_ids(bitmap_assets: list[dict]) -> tuple[str, str]:
     if len(bitmap_assets) < 2:
         raise RuntimeError("The template must contain at least two image assets.")
     return bitmap_assets[1]["id"], bitmap_assets[0]["id"]
+
+
+def probe_image_size(
+    input_path: Path,
+    *,
+    should_cancel: Callable[[], bool] | None = None,
+) -> tuple[int, int]:
+    process = subprocess.Popen(
+        [
+            "ffprobe",
+            "-v",
+            "error",
+            "-select_streams",
+            "v:0",
+            "-show_entries",
+            "stream=width,height",
+            "-of",
+            "csv=p=0:s=x",
+            str(input_path),
+        ],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+    )
+    try:
+        while True:
+            if should_cancel and should_cancel():
+                process.terminate()
+                try:
+                    process.wait(timeout=5)
+                except subprocess.TimeoutExpired:
+                    process.kill()
+                raise RenderCancelled("Render was terminated.")
+
+            try:
+                stdout_text, stderr_text = process.communicate(timeout=0.1)
+                break
+            except subprocess.TimeoutExpired:
+                continue
+    finally:
+        if process.poll() is None:
+            process.kill()
+            process.wait()
+
+    if process.returncode != 0:
+        raise RuntimeError(
+            f"Command failed: ffprobe {input_path}\n"
+            f"stdout:\n{stdout_text}\n"
+            f"stderr:\n{stderr_text}"
+        )
+
+    width_text, height_text = stdout_text.strip().split("x", 1)
+    return int(width_text), int(height_text)
+
+
+def normalize_input_image(
+    input_path: Path,
+    output_path: Path,
+    *,
+    max_side: int = MAX_INPUT_IMAGE_SIDE,
+    should_cancel: Callable[[], bool] | None = None,
+) -> Path:
+    run(
+        [
+            "ffmpeg",
+            "-y",
+            "-i",
+            str(input_path),
+            "-vf",
+            f"scale='min({max_side},iw)':'min({max_side},ih)':force_original_aspect_ratio=decrease:flags=lanczos",
+            "-frames:v",
+            "1",
+            str(output_path),
+        ],
+        should_cancel=should_cancel,
+    )
+    return output_path
+
+
+def maybe_normalize_input_image(
+    input_path: Path,
+    output_path: Path,
+    *,
+    max_side: int = MAX_INPUT_IMAGE_SIDE,
+    should_cancel: Callable[[], bool] | None = None,
+) -> Path:
+    width, height = probe_image_size(input_path, should_cancel=should_cancel)
+    if max(width, height) <= max_side:
+        return input_path
+    return normalize_input_image(
+        input_path,
+        output_path,
+        max_side=max_side,
+        should_cancel=should_cancel,
+    )
 
 
 def preprocess_image(
@@ -425,13 +523,18 @@ def render_video(
         processed_assets = 0
         for asset_id, input_image in asset_image_paths.items():
             source_path = Path(input_image).expanduser().resolve()
+            normalized_source_path = maybe_normalize_input_image(
+                source_path,
+                temp_dir / f"asset_{asset_id}_normalized.png",
+                should_cancel=should_cancel,
+            )
             prepared_image = temp_dir / f"asset_{asset_id}.png"
             asset = bitmap_by_id[asset_id]
             image_mode = image_modes_by_asset_id.get(asset_id, "cover")
 
             if image_mode == "vertical_fill_height":
                 preprocess_vertical_image(
-                    source_path,
+                    normalized_source_path,
                     prepared_image,
                     lottie=lottie,
                     asset_id=asset_id,
@@ -439,7 +542,7 @@ def render_video(
                 )
             else:
                 preprocess_image(
-                    source_path,
+                    normalized_source_path,
                     prepared_image,
                     int(asset["w"]),
                     int(asset["h"]),
