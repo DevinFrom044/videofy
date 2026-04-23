@@ -402,6 +402,7 @@ class RenderResult:
     output_video: Path
     rendered_json: Path
     replaced_asset_ids: list[str]
+    stage_timings: dict[str, float]
 
 
 def compose_video_background_with_overlay(
@@ -491,6 +492,8 @@ def render_video(
 ) -> RenderResult:
     transparent_asset_ids = list(transparent_asset_ids or [])
     hidden_layer_inds = list(hidden_layer_inds or [])
+    stage_timings: dict[str, float] = {}
+    total_started_at = time.perf_counter()
 
     if not asset_image_paths and not transparent_asset_ids:
         raise RuntimeError("At least one asset replacement must be provided.")
@@ -519,6 +522,7 @@ def render_video(
     frames_dir.mkdir(parents=True, exist_ok=True)
 
     try:
+        prepare_assets_started_at = time.perf_counter()
         total_assets = len(asset_image_paths) + len(transparent_asset_ids)
         processed_assets = 0
         for asset_id, input_image in asset_image_paths.items():
@@ -569,13 +573,16 @@ def render_video(
             if progress_callback:
                 progress_value = max(5, round((processed_assets / total_assets) * 20))
                 progress_callback(progress_value, "Preparing images")
+        stage_timings["prepare_assets"] = round(time.perf_counter() - prepare_assets_started_at, 3)
 
+        prepare_template_started_at = time.perf_counter()
         hide_layers_by_index(lottie, hidden_layer_inds)
 
         rendered_json_path = output_dir / f"{Path(output_name).stem}.json"
         write_json(rendered_json_path, lottie)
         if progress_callback:
             progress_callback(22, "Preparing render")
+        stage_timings["prepare_template"] = round(time.perf_counter() - prepare_template_started_at, 3)
 
         node_script = project_dir / "render_frames.js"
         node_cmd = [
@@ -604,6 +611,7 @@ def render_video(
             *(["--chrome-path", chrome_path] if chrome_path else []),
         ]
 
+        render_frames_started_at = time.perf_counter()
         if progress_callback:
             total_frames = int(lottie["op"])
 
@@ -623,8 +631,10 @@ def render_video(
             )
         else:
             run(node_cmd, should_cancel=should_cancel)
+        stage_timings["render_frames"] = round(time.perf_counter() - render_frames_started_at, 3)
 
         output_video = output_dir / output_name
+        encode_started_at = time.perf_counter()
         if overlay_video_path:
             if progress_callback:
                 progress_callback(92, "Compositing video")
@@ -676,6 +686,7 @@ def render_video(
                 ]
             )
             run(cmd, should_cancel=should_cancel)
+        stage_timings["encode_video"] = round(time.perf_counter() - encode_started_at, 3)
 
         if keep_temp:
             kept_temp_dir = output_dir / f"{Path(output_name).stem}_temp"
@@ -687,10 +698,12 @@ def render_video(
     finally:
         temp_dir_obj.cleanup()
 
+    stage_timings["total"] = round(time.perf_counter() - total_started_at, 3)
     return RenderResult(
         output_video=output_video,
         rendered_json=rendered_json_path,
         replaced_asset_ids=list(asset_image_paths.keys()) + transparent_asset_ids,
+        stage_timings=stage_timings,
     )
 
 

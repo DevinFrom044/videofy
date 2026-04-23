@@ -28,7 +28,6 @@ VIDEO_EXTENSIONS = {".mp4"}
 MAX_VIDEO_DURATION_SECONDS = 60
 QUALITY_PRESET = {"scale_factor": 2, "video_crf": 20, "video_preset": "medium"}
 RAILWAY_QUALITY_PRESET = {
-    "scale_factor": 1,
     "video_crf": 23,
     "video_preset": "veryfast",
     "video_threads": 4,
@@ -41,7 +40,7 @@ VIDEO_TYPES = {
         "enabled": True,
         "description": "Upload 3 Before photos and 6 After photos. The template reuses the first and last After frames automatically.",
         "template_path": PROJECT_DIR / "templates_json" / "AI-PHOTO.json",
-        "quality_preset": {"render_fps": 30, "encode_fps": 30},
+        "quality_preset": {"scale_factor": 1, "render_fps": 30, "encode_fps": 30},
         "upload_groups": [
             {
                 "key": "before",
@@ -89,7 +88,7 @@ VIDEO_TYPES = {
         "enabled": True,
         "description": "Upload 3 pairs of Before and After photos for the three AI Filter groups.",
         "template_path": PROJECT_DIR / "templates_json" / "maska-worksGood.json",
-        "quality_preset": {"render_fps": 30, "encode_fps": 30},
+        "quality_preset": {"scale_factor": 1, "render_fps": 30, "encode_fps": 30},
         "upload_groups": [
             {
                 "key": "group-1",
@@ -173,7 +172,7 @@ VIDEO_TYPES = {
         "enabled": True,
         "description": "Upload 2 source photos plus 1 generated photo for the 2 Photos flow.",
         "template_path": PROJECT_DIR / "templates_json" / "2-Photo-Flow (1).json",
-        "quality_preset": {"render_fps": 30, "encode_fps": 30},
+        "quality_preset": {"scale_factor": 1, "render_fps": 30, "encode_fps": 30},
         "upload_groups": [
             {
                 "key": "photos",
@@ -356,12 +355,13 @@ def run_render_job(
             },
         )
         app.logger.info(
-            "Completed render job %s. video=%s json=%s exists(video)=%s exists(json)=%s",
+            "Completed render job %s. video=%s json=%s exists(video)=%s exists(json)=%s timings=%s",
             job.id,
             result.output_video,
             result.rendered_json,
             result.output_video.exists(),
             result.rendered_json.exists(),
+            result.stage_timings,
         )
     except RenderCancelled as error:
         update_job(
