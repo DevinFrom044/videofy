@@ -40,7 +40,7 @@ VIDEO_TYPES = {
         "enabled": True,
         "description": "Upload 3 Before photos and 6 After photos. The template reuses the first and last After frames automatically.",
         "template_path": PROJECT_DIR / "templates_json" / "AI-PHOTO.json",
-        "quality_preset": {"scale_factor": 1, "render_fps": 30, "encode_fps": 30},
+        "quality_preset": {"scale_factor": 1, "render_fps": 24, "encode_fps": 24},
         "upload_groups": [
             {
                 "key": "before",
@@ -88,7 +88,7 @@ VIDEO_TYPES = {
         "enabled": True,
         "description": "Upload 3 pairs of Before and After photos for the three AI Filter groups.",
         "template_path": PROJECT_DIR / "templates_json" / "maska-worksGood.json",
-        "quality_preset": {"scale_factor": 1, "render_fps": 30, "encode_fps": 30},
+        "quality_preset": {"scale_factor": 1, "render_fps": 24, "encode_fps": 24},
         "upload_groups": [
             {
                 "key": "group-1",
@@ -172,7 +172,7 @@ VIDEO_TYPES = {
         "enabled": True,
         "description": "Upload 2 source photos plus 1 generated photo for the 2 Photos flow.",
         "template_path": PROJECT_DIR / "templates_json" / "2-Photo-Flow (1).json",
-        "quality_preset": {"scale_factor": 1, "render_fps": 30, "encode_fps": 30},
+        "quality_preset": {"scale_factor": 1, "render_fps": 24, "encode_fps": 24},
         "upload_groups": [
             {
                 "key": "photos",
