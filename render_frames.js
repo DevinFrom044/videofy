@@ -68,6 +68,7 @@ async function main() {
   const sourceFps = Number(args["source-fps"] || "60");
   const renderFps = Number(args["render-fps"] || String(sourceFps));
   const scaleFactor = Number(args["scale-factor"] || "2");
+  const renderer = args.renderer || "svg";
   const transparent = String(args["transparent"] || "0") === "1";
   const pageBackground = transparent ? "#00ff00" : "transparent";
   const chromePath = resolveChromePath(args["chrome-path"]);
@@ -83,6 +84,7 @@ async function main() {
   const browser = await puppeteer.launch({
     executablePath: chromePath,
     headless: true,
+    protocolTimeout: 600000,
     args: [
       "--allow-file-access-from-files",
       "--disable-gpu",
@@ -128,7 +130,7 @@ async function main() {
       window.__animationData = ${JSON.stringify(lottieAnimation)};
       window.__animation = lottie.loadAnimation({
         container: document.getElementById("app"),
-        renderer: "svg",
+        renderer: ${JSON.stringify(renderer)},
         loop: false,
         autoplay: false,
         animationData: window.__animationData,
@@ -146,6 +148,7 @@ async function main() {
   await page.waitForFunction(() => {
     return window.__animation && window.__animation.isLoaded;
   });
+  console.log(`FRAME_PROGRESS 0 ${totalFrames}`);
 
   const resolveSourceFrame = (frameIndex) => {
     if (totalFrames <= 1 || sourceFrames <= 1 || renderFps <= 0 || sourceFps <= 0) {

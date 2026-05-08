@@ -482,6 +482,7 @@ def render_video(
     render_fps: float | None = None,
     encode_fps: float | None = None,
     video_threads: int | None = None,
+    renderer: str = "svg",
     image_modes_by_asset_id: Mapping[str, str] | None = None,
     transparent_asset_ids: list[str] | None = None,
     hidden_layer_inds: list[int] | None = None,
@@ -607,6 +608,8 @@ def render_video(
             str(render_fps),
             "--scale-factor",
             str(scale_factor),
+            "--renderer",
+            renderer,
             "--transparent",
             "1" if transparent_background else "0",
             *(["--chrome-path", chrome_path] if chrome_path else []),
@@ -712,6 +715,7 @@ def render_video(
             "source_frame_count": int(lottie["op"]),
             "target_frame_count": target_frame_count,
             "scale_factor": scale_factor,
+            "renderer": renderer,
         },
     )
 
@@ -765,6 +769,12 @@ def parse_args() -> argparse.Namespace:
         help="FFmpeg x264 preset. Default: slow",
     )
     parser.add_argument(
+        "--renderer",
+        choices=("svg", "canvas"),
+        default="svg",
+        help="Lottie renderer used for frame capture. Default: svg",
+    )
+    parser.add_argument(
         "--keep-temp",
         action="store_true",
         help="Keep temporary frames and prepared images for debugging.",
@@ -799,6 +809,7 @@ def main() -> int:
         scale_factor=args.scale_factor,
         video_crf=args.video_crf,
         video_preset=args.video_preset,
+        renderer=args.renderer,
         keep_temp=args.keep_temp,
     )
 
