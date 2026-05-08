@@ -2,6 +2,7 @@
 
 const fs = require("fs");
 const path = require("path");
+const { pathToFileURL } = require("url");
 const puppeteer = require("puppeteer-core");
 
 function parseArgs(argv) {
@@ -73,7 +74,7 @@ async function main() {
   const pageBackground = transparent ? "#00ff00" : "transparent";
   const chromePath = resolveChromePath(args["chrome-path"]);
 
-  const lottieAnimation = JSON.parse(fs.readFileSync(lottiePath, "utf8"));
+  const lottieUrl = pathToFileURL(path.resolve(lottiePath)).href;
   const lottiePlayer = fs.readFileSync(
     path.join(__dirname, "node_modules", "lottie-web", "build", "player", "lottie.min.js"),
     "utf8"
@@ -90,6 +91,7 @@ async function main() {
       "--allow-file-access-from-files",
       "--disable-gpu",
       "--disable-dev-shm-usage",
+      "--disable-web-security",
       "--no-default-browser-check",
       "--no-first-run",
       "--no-sandbox",
@@ -131,13 +133,12 @@ async function main() {
     <div id="app"></div>
     <script>${lottiePlayer}</script>
     <script>
-      window.__animationData = ${JSON.stringify(lottieAnimation)};
       window.__animation = lottie.loadAnimation({
         container: document.getElementById("app"),
         renderer: ${JSON.stringify(renderer)},
         loop: false,
         autoplay: false,
-        animationData: window.__animationData,
+        path: ${JSON.stringify(lottieUrl)},
         rendererSettings: {
           preserveAspectRatio: "xMidYMid meet",
           progressiveLoad: false
