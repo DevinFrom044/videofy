@@ -306,7 +306,19 @@ def run_render_job(
     output_name: str,
     saved_paths: dict[str, Path],
 ) -> None:
+    render_lock = app.config.get("RENDER_LOCK")
+    lock_acquired = False
     try:
+        if render_lock is not None:
+            lock_acquired = render_lock.acquire(blocking=False)
+            if not lock_acquired:
+                update_job(job, status="queued", progress=1, message="Waiting for current render")
+                app.logger.info("Render job %s waiting for active render slot", job.id)
+                while not lock_acquired:
+                    if job.cancel_event.is_set():
+                        raise RenderCancelled("Render was terminated before it started.")
+                    lock_acquired = render_lock.acquire(timeout=0.5)
+
         video_type = app.config["VIDEO_TYPES"][video_type_key]
         output_dir = video_type_output_dir(app.config["OUTPUT_ROOT"], video_type_key)
         quality_preset = runtime_quality_preset(video_type)
@@ -382,6 +394,8 @@ def run_render_job(
         )
         app.logger.exception("Render job %s failed", job.id)
     finally:
+        if lock_acquired and render_lock is not None:
+            render_lock.release()
         if job.work_dir and job.work_dir.exists():
             shutil.rmtree(job.work_dir, ignore_errors=True)
 
@@ -392,6 +406,7 @@ def create_app(output_root: Path) -> Flask:
     app.config["OUTPUT_ROOT"] = output_root.expanduser().resolve()
     app.config["OUTPUT_ROOT"].mkdir(parents=True, exist_ok=True)
     app.config["JOBS"] = {}
+    app.config["RENDER_LOCK"] = threading.Lock()
     app.config["VIDEO_TYPES"] = {
         key: {
             **value,
