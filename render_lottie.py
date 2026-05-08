@@ -617,9 +617,12 @@ def render_video(
 
         render_frames_started_at = time.perf_counter()
         if progress_callback:
-            total_frames = int(lottie["op"])
-
             def handle_frame_progress(message: str) -> None:
+                if message.startswith("FRAME_STAGE "):
+                    _, progress_str, stage_message = message.split(" ", 2)
+                    progress_callback(int(progress_str), stage_message)
+                    return
+
                 _, frame_str, total_str = message.split()
                 frame_number = int(frame_str)
                 frame_total = int(total_str) if total_str else target_frame_count
@@ -629,7 +632,7 @@ def render_video(
 
             run_with_progress(
                 node_cmd,
-                progress_prefix="FRAME_PROGRESS",
+                progress_prefix="FRAME_",
                 on_progress=handle_frame_progress,
                 should_cancel=should_cancel,
             )

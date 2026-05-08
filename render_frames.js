@@ -81,6 +81,7 @@ async function main() {
 
   fs.mkdirSync(outputDir, { recursive: true });
 
+  console.log(`FRAME_STAGE 23 Launching Chromium`);
   const browser = await puppeteer.launch({
     executablePath: chromePath,
     headless: true,
@@ -101,7 +102,10 @@ async function main() {
     }
   });
 
+  console.log(`FRAME_STAGE 24 Opening render page`);
   const page = await browser.newPage();
+  page.setDefaultTimeout(300000);
+  console.log(`FRAME_STAGE 25 Loading Lottie document`);
   await page.setContent(
     `<!doctype html>
 <html>
@@ -145,9 +149,11 @@ async function main() {
     { waitUntil: "load" }
   );
 
+  console.log(`FRAME_STAGE 28 Waiting for Lottie assets`);
   await page.waitForFunction(() => {
     return window.__animation && window.__animation.isLoaded;
   });
+  console.log(`FRAME_STAGE 30 Starting frame capture`);
   console.log(`FRAME_PROGRESS 0 ${totalFrames}`);
 
   const resolveSourceFrame = (frameIndex) => {
