@@ -74,13 +74,62 @@ async function main() {
   const pageBackground = transparent ? "#00ff00" : "transparent";
   const chromePath = resolveChromePath(args["chrome-path"]);
 
-  const lottieUrl = pathToFileURL(path.resolve(lottiePath)).href;
-  const lottiePlayer = fs.readFileSync(
-    path.join(__dirname, "node_modules", "lottie-web", "build", "player", "lottie.min.js"),
+  fs.mkdirSync(outputDir, { recursive: true });
+  const animationDataPath = path.join(outputDir, "animation_data.js");
+  const renderPagePath = path.join(outputDir, "render_page.html");
+  const lottiePlayerUrl = pathToFileURL(
+    path.join(__dirname, "node_modules", "lottie-web", "build", "player", "lottie.min.js")
+  ).href;
+  const animationDataUrl = pathToFileURL(animationDataPath).href;
+  fs.writeFileSync(
+    animationDataPath,
+    `window.__animationData = ${fs.readFileSync(lottiePath, "utf8")};`,
     "utf8"
   );
 
-  fs.mkdirSync(outputDir, { recursive: true });
+  fs.writeFileSync(
+    renderPagePath,
+    `<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      html, body {
+        margin: 0;
+        padding: 0;
+        background: ${pageBackground};
+        overflow: hidden;
+        width: ${width}px;
+        height: ${height}px;
+      }
+      #app {
+        width: ${width}px;
+        height: ${height}px;
+        background: ${pageBackground};
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script src="${lottiePlayerUrl}"></script>
+    <script src="${animationDataUrl}"></script>
+    <script>
+      window.__animation = lottie.loadAnimation({
+        container: document.getElementById("app"),
+        renderer: ${JSON.stringify(renderer)},
+        loop: false,
+        autoplay: false,
+        animationData: window.__animationData,
+        rendererSettings: {
+          preserveAspectRatio: "xMidYMid meet",
+          progressiveLoad: false
+        }
+      });
+    </script>
+  </body>
+</html>`,
+    "utf8"
+  );
 
   console.log(`FRAME_STAGE 23 Launching Chromium`);
   const browser = await puppeteer.launch({
@@ -108,47 +157,7 @@ async function main() {
   const page = await browser.newPage();
   page.setDefaultTimeout(300000);
   console.log(`FRAME_STAGE 25 Loading Lottie document`);
-  await page.setContent(
-    `<!doctype html>
-<html>
-  <head>
-    <meta charset="utf-8" />
-    <style>
-      html, body {
-        margin: 0;
-        padding: 0;
-        background: ${pageBackground};
-        overflow: hidden;
-        width: ${width}px;
-        height: ${height}px;
-      }
-      #app {
-        width: ${width}px;
-        height: ${height}px;
-        background: ${pageBackground};
-      }
-    </style>
-  </head>
-  <body>
-    <div id="app"></div>
-    <script>${lottiePlayer}</script>
-    <script>
-      window.__animation = lottie.loadAnimation({
-        container: document.getElementById("app"),
-        renderer: ${JSON.stringify(renderer)},
-        loop: false,
-        autoplay: false,
-        path: ${JSON.stringify(lottieUrl)},
-        rendererSettings: {
-          preserveAspectRatio: "xMidYMid meet",
-          progressiveLoad: false
-        }
-      });
-    </script>
-  </body>
-</html>`,
-    { waitUntil: "load" }
-  );
+  await page.goto(pathToFileURL(renderPagePath).href, { waitUntil: "load" });
 
   console.log(`FRAME_STAGE 28 Waiting for Lottie assets`);
   await page.waitForFunction(() => {
