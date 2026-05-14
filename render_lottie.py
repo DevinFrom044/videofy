@@ -50,7 +50,7 @@ def run(
                 stdout_text, stderr_text = process.communicate()
                 if return_code != 0:
                     raise RuntimeError(
-                        f"Command failed: {' '.join(cmd)}\n"
+                        f"Command failed with exit code {return_code}: {' '.join(cmd)}\n"
                         f"stdout:\n{stdout_text}\n"
                         f"stderr:\n{stderr_text}"
                     )
@@ -61,7 +61,7 @@ def run(
                 return_code = process.returncode
                 if return_code != 0:
                     raise RuntimeError(
-                        f"Command failed: {' '.join(cmd)}\n"
+                        f"Command failed with exit code {return_code}: {' '.join(cmd)}\n"
                         f"stdout:\n{stdout_text}\n"
                         f"stderr:\n{stderr_text}"
                     )
@@ -580,8 +580,12 @@ def render_video(
         prepare_template_started_at = time.perf_counter()
         hide_layers_by_index(lottie, hidden_layer_inds)
 
+        output_video = output_dir / output_name
         rendered_json_path = output_dir / f"{Path(output_name).stem}.json"
-        write_json(rendered_json_path, lottie)
+        temp_output_token = f"{os.getpid()}.{time.time_ns()}"
+        temp_output_video = output_dir / f".{output_video.stem}.{temp_output_token}.tmp{output_video.suffix}"
+        temp_rendered_json_path = output_dir / f".{rendered_json_path.stem}.{temp_output_token}.tmp{rendered_json_path.suffix}"
+        write_json(temp_rendered_json_path, lottie)
         if progress_callback:
             progress_callback(22, "Preparing render")
         stage_timings["prepare_template"] = round(time.perf_counter() - prepare_template_started_at, 3)
@@ -591,7 +595,7 @@ def render_video(
             "node",
             str(node_script),
             "--lottie",
-            str(rendered_json_path),
+            str(temp_rendered_json_path),
             "--output-dir",
             str(frames_dir),
             "--width",
@@ -640,7 +644,6 @@ def render_video(
             run(node_cmd, should_cancel=should_cancel)
         stage_timings["render_frames"] = round(time.perf_counter() - render_frames_started_at, 3)
 
-        output_video = output_dir / output_name
         encode_started_at = time.perf_counter()
         if overlay_video_path:
             if progress_callback:
@@ -648,7 +651,7 @@ def render_video(
             compose_video_background_with_overlay(
                 input_video_path=Path(overlay_video_path).expanduser().resolve(),
                 overlay_frames_dir=frames_dir,
-                output_video_path=output_video,
+                output_video_path=temp_output_video,
                 width=int(lottie["w"]),
                 height=int(lottie["h"]),
                 framerate=render_fps,
@@ -689,11 +692,14 @@ def render_video(
                     "yuv420p",
                     "-movflags",
                     "+faststart",
-                    str(output_video),
+                    str(temp_output_video),
                 ]
             )
             run(cmd, should_cancel=should_cancel)
         stage_timings["encode_video"] = round(time.perf_counter() - encode_started_at, 3)
+
+        temp_output_video.replace(output_video)
+        temp_rendered_json_path.replace(rendered_json_path)
 
         if keep_temp:
             kept_temp_dir = output_dir / f"{Path(output_name).stem}_temp"
@@ -704,6 +710,9 @@ def render_video(
             progress_callback(100, "Done")
     finally:
         temp_dir_obj.cleanup()
+        for temporary_output in (locals().get("temp_output_video"), locals().get("temp_rendered_json_path")):
+            if temporary_output and temporary_output.exists():
+                temporary_output.unlink()
 
     stage_timings["total"] = round(time.perf_counter() - total_started_at, 3)
     return RenderResult(

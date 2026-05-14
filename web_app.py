@@ -144,7 +144,7 @@ VIDEO_TYPES = {
         "description": "Upload 1 photo and 1 MP4 video for the AI Video template.",
         "upload_step_label": "3. Media",
         "template_path": PROJECT_DIR / "templates_json" / "AI-VIDEO (1).json",
-        "quality_preset": {"scale_factor": 2, "video_crf": 23, "video_preset": "medium", "render_fps": 60, "encode_fps": 60, "renderer": "svg"},
+        "quality_preset": {"scale_factor": 1, "video_crf": 23, "video_preset": "medium", "render_fps": 60, "encode_fps": 60, "renderer": "svg"},
         "upload_groups": [
             {
                 "key": "media",

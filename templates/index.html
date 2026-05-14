@@ -938,13 +938,21 @@
         }
       }
 
+      function clearResult() {
+        resultEl.classList.remove("visible");
+        resultVideo.pause();
+        resultVideo.removeAttribute("src");
+        resultVideo.load();
+        downloadLink.href = "#";
+        downloadLink.removeAttribute("download");
+      }
+
       function clearSelectedFiles() {
         Object.keys(state.files).forEach((field) => {
           revokeObjectUrl(field);
           delete state.files[field];
         });
-        resultEl.classList.remove("visible");
-        resultVideo.removeAttribute("src");
+        clearResult();
         renderUploadGroups();
         updateControls();
       }
@@ -1076,7 +1084,7 @@
             event.stopPropagation();
             revokeObjectUrl(slot.field);
             delete state.files[slot.field];
-            resultEl.classList.remove("visible");
+            clearResult();
             renderUploadGroups();
             updateControls();
           });
@@ -1120,7 +1128,7 @@
           revokeObjectUrl(slot.field);
           state.files[slot.field] = file;
           state.objectUrls[slot.field] = URL.createObjectURL(file);
-          resultEl.classList.remove("visible");
+          clearResult();
           renderUploadGroups();
           updateControls();
         }
@@ -1237,7 +1245,7 @@
           progressHideTimeout = null;
         }
         setProgress(0, true, "Starting render");
-        resultEl.classList.remove("visible");
+        clearResult();
         setStatus("", false);
         updateControls();
         let terminalStatus = null;
@@ -1297,12 +1305,14 @@
           }
 
           if (payload.status === "cancelled") {
+            clearResult();
             resetRenderState();
             return "cancelled";
           }
 
           if (payload.status === "failed") {
             setProgress(0, false, "");
+            clearResult();
             throw new Error(payload.error || "Render failed.");
           }
 
